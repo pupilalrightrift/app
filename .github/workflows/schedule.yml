@@ -1,0 +1,34 @@
+name: Harmonogram zadan
+
+on:
+  schedule:
+    # Czasy w UTC. Odpowiadaja CEST (UTC+2): 04:33, 08:33, 12:33, 16:33, 20:33, 00:33
+    # Najblizsze uruchomienie po dodaniu tego pliku wypadnie o 10:33 UTC (12:33 CEST)
+    - cron: "33 2,6,10,14,18,22 * * *"
+  workflow_dispatch: {}   # pozwala odpalic zadanie recznie z zakladki Actions
+
+permissions:
+  contents: write
+
+jobs:
+  run-task:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pobranie repozytorium
+        uses: actions/checkout@v4
+
+      - name: Konfiguracja Pythona
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Uruchomienie skryptu
+        run: python app.py
+
+      - name: Zapis wynikow do repozytorium
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git add log.txt
+          git diff --quiet --cached || git commit -m "Automatyczne uruchomienie: $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
